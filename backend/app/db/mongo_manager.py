@@ -6,7 +6,7 @@ class MongoManager:
     client: AsyncMongoClient = None
     db: Database = None
 
-    def connect_to_database(self, path: str):
+    async def connect_to_database(self, path: str):
         logging.info("Connecting to MongoDB.")
         self.client = AsyncMongoClient(path)
         self.db = self.client.main_db

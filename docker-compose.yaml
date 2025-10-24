@@ -6,6 +6,7 @@ services:
       - "80:80"
     volumes:
       - ./backend/app:/code/app
+      - image_files:/code/storage/images
     environment:
       - DATABASE_URL=${MONGO_DATABASE_URL}
       - QDRANT_URL=${QDRANT_URL}
@@ -21,10 +22,14 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+      MONGO_INITDB_DATABASE: ${MONGO_APP_DB}
+      MONGO_INITDB_USERNAME: ${MONGO_APP_USER}
+      MONGO_INITDB_PASSWORD: ${MONGO_APP_PASSWORD}
     restart: always
     volumes:
       - mongodata:/data/db
-      - ./mongo-init:/docker-entrypoint-initdb.d
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -37,3 +42,4 @@ services:
 volumes:
   mongodata:
   qdrantdata:
+  image_files: {}
