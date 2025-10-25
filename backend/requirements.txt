@@ -1,3 +1,4 @@
 fastapi[standard]==0.119.1
 pydantic>=2.7.0,<3.0.0
 pymongo==4.15.3
+python-magic==0.4.27

@@ -6,10 +6,15 @@ services:
       - "80:80"
     volumes:
       - ./backend/app:/code/app
-      - image_files:/code/storage/images
+      - ./static:/code/static
     environment:
       - DATABASE_URL=${MONGO_DATABASE_URL}
       - QDRANT_URL=${QDRANT_URL}
+      #Actual path for storing images
+      - IMAGES_DIR=/code/static/images
+      #Path that will be sent to the client
+      - IMAGES_URL_PATH=/static/images
+      - STATIC_ROOT=/code/static
     depends_on:
       - mongo
       - qdrant
@@ -42,4 +47,3 @@ services:
 volumes:
   mongodata:
   qdrantdata:
-  image_files: {}
