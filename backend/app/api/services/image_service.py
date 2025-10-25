@@ -40,6 +40,8 @@ async def get_from_id(id: str):
     if item is None:
         raise exceptions.ItemNotFoundError(f"Image with id {id} not found.")
 
+    return item
+
 async def save_image_to_disk(file: UploadFile):
     """Saves an image file to disk, generating an unique uuid for it. Returns the image path"""
     file_extension = pathlib.Path(file.filename).suffix
