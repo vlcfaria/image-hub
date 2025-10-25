@@ -1,12 +1,6 @@
-import uuid
-from bson import ObjectId
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from pydantic import ValidationError
+from fastapi import APIRouter, File, Form, UploadFile
 import logging
 from ..models.images import ImageModel
-import os
-import pathlib
-import magic
 from ..services import image_service
 
 logging.basicConfig(level=logging.INFO)
@@ -16,11 +10,6 @@ router = APIRouter(
     tags=["images"],
     responses={404: {"description": "Not found"}},
 )
-
-IMAGES_DIR = os.environ.get('IMAGES_DIR')
-IMAGES_URL_PATH = os.environ.get('IMAGES_URL_PATH')
-UPLOAD_DIR = pathlib.Path(IMAGES_DIR)
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 @router.get(
     '/',

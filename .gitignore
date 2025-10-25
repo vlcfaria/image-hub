@@ -1,6 +1,12 @@
 #Static files
 static/
 
+#Ignore seeder files too
+seeder/*
+!seeder/Dockerfile
+!seeder/requirements.txt
+!seeder/seed.py
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

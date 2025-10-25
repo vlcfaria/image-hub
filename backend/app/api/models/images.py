@@ -5,8 +5,9 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 class ImageModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    title: str = Field(...) #The '...' means its required
     author: str = Field(None)
+    born_died: str = Field(None)
+    title: str = Field(...) #The '...' means its required
     date: str = Field(None) #None means its optional, or we can set to a default value
     technique: str = Field(None)
     location: str = Field(None)
@@ -34,3 +35,6 @@ class ImageModel(BaseModel):
             }
         },
     )
+
+class RetrievedImageModel(ImageModel):
+    score: float = Field(...)

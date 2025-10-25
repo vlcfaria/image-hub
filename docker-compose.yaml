@@ -1,4 +1,18 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:80
+    depends_on:
+      - backend
+      
   backend:
     build: ./backend
     command: ["fastapi", "dev", "app/main.py", "--host", "0.0.0.0", "--port", "80"]
@@ -15,6 +29,9 @@ services:
       #Path that will be sent to the client
       - IMAGES_URL_PATH=/static/images
       - STATIC_ROOT=/code/static
+      - ENCODER_MODEL=google/siglip-base-patch16-224
+
+      - ALLOWED_ORIGINS=http://localhost:5173
     depends_on:
       - mongo
       - qdrant
@@ -43,6 +60,18 @@ services:
     ports:
       - "6333:6333"
       - "6334:6334"
+
+  qdrant-seeder:
+    build:
+      context: ./seeder
+    depends_on:
+      - qdrant
+      - mongo
+    environment:
+      - RUN_SEEDER=false
+      - DATABASE_URL=${MONGO_DATABASE_URL}
+      - QDRANT_URL=${QDRANT_URL}
+      - IMAGES_URL_PATH=/static/images #To mimic client path when actually inserted by the db
 
 volumes:
   mongodata:
