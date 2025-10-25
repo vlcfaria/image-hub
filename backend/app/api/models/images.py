@@ -30,7 +30,7 @@ class ImageModel(BaseModel):
                 "type": "mythological",
                 "school": "german",
                 "timeline": "1601-1650",
-                "url": "http://example.com"
+                "url": "/static/images/8093e6ed-b071-4ab3-81c5-905bc82f7840.jpg"
             }
         },
     )
