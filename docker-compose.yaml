@@ -9,15 +9,15 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:80
+      - VITE_API_URL=http://localhost:42069
     depends_on:
       - backend
       
   backend:
     build: ./backend
-    command: ["fastapi", "dev", "app/main.py", "--host", "0.0.0.0", "--port", "80"]
+    command: ["fastapi", "dev", "app/main.py", "--host", "0.0.0.0", "--port", "42069"]
     ports:
-      - "80:80"
+      - "42069:42069"
     volumes:
       - ./backend/app:/code/app
       - ./static:/code/static
@@ -39,8 +39,8 @@ services:
   mongo:
     image: mongo:latest
     container_name: mongodb_container
-    ports:
-      - "27017:27017"
+    #ports:
+      #- "56290:27017" -- dont expose mongo port at all
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}

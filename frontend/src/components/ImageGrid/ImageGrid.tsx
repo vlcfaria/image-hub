@@ -49,7 +49,7 @@ const ImageGrid = ({ searchTerm }) => {
         {images?.data.map((image) => (
           <div key={image.id} className="aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-md">
             <img
-              src={`/api${image.url}`}
+              src={`${import.meta.env.VITE_API_URL}${image.url}`}
               alt="Search result"
               className="w-full h-full object-cover"
               onError={(e) => { 
