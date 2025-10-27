@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from app.db import db, vector_db
 import logging
-from .api.routers import images, search
+from .api import api
 from .api.services import exceptions
 from . import dependencies
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,8 +40,7 @@ app = FastAPI(lifespan=lifespan)
 def read_root():
     return {"Hello": "World"}
 
-app.include_router(images.router)
-app.include_router(search.router)
+app.include_router(api.router)
 
 #Serve the static files TODO move this to nginx static file serving
 app.mount("/static", StaticFiles(directory=static_root), name="static")
