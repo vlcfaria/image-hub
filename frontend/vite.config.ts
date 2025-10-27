@@ -10,12 +10,7 @@ export default defineConfig({
       '/api': {
         target: 'http://backend:42069',
         changeOrigin: true,
-        rewrite: (path) => path, // <-- This passes the path through as-is
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Vite Proxy -> Forwarding request to:', options.target + proxyReq.path);
-          });
-        }
+        rewrite: (path) => path,
       },
 
       '/static/images': {

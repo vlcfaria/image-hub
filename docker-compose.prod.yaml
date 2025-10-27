@@ -2,34 +2,26 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prod
     ports:
       - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     depends_on:
       - backend
-      
+
   backend:
     build: ./backend
-    command: ["fastapi", "dev", "app/main.py", "--host", "0.0.0.0", "--port", "42069"]
-    ports:
-      - "42069:42069"
+    command: ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:42069"]
     volumes:
-      - ./backend/app:/code/app
       - ./static:/code/static
     environment:
       - DATABASE_URL=${MONGO_DATABASE_URL}
-      - QDRANT_URL=${QDRANT_URL}
-      #Actual path for storing images
+      - QDRANT_URL=http://qdrant:6333
       - IMAGES_DIR=/code/static/images
-      #Path that will be sent to the client
       - IMAGES_URL_PATH=/static/images
       - STATIC_ROOT=/code/static
       - ENCODER_MODEL=google/siglip-base-patch16-224
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
 
-      - ALLOWED_ORIGINS=http://localhost:5173
     depends_on:
       - mongo
       - qdrant
@@ -37,12 +29,9 @@ services:
   mongo:
     image: mongo:latest
     container_name: mongodb_container
-    #ports:
-      #- "56290:27017" -- dont expose mongo port at all
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-
       MONGO_INITDB_DATABASE: ${MONGO_APP_DB}
       MONGO_INITDB_USERNAME: ${MONGO_APP_USER}
       MONGO_INITDB_PASSWORD: ${MONGO_APP_PASSWORD}
@@ -55,9 +44,7 @@ services:
     image: qdrant/qdrant:latest
     volumes:
       - qdrantdata:/qdrant/storage
-    ports:
-      - "6333:6333"
-      - "6334:6334"
+    restart: always
 
   qdrant-seeder:
     build:
@@ -68,8 +55,8 @@ services:
     environment:
       - RUN_SEEDER=false
       - DATABASE_URL=${MONGO_DATABASE_URL}
-      - QDRANT_URL=${QDRANT_URL}
-      - IMAGES_URL_PATH=/static/images #To mimic client path when actually inserted by the db
+      - QDRANT_URL=http://qdrant:6333
+      - IMAGES_URL_PATH=/static/images
 
 volumes:
   mongodata:

@@ -8,3 +8,5 @@ pymongo==4.15.3
 python-magic==0.4.27
 qdrant_client==1.15.1
 transformers==4.57.1
+gunicorn
+uvicorn
