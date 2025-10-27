@@ -49,7 +49,7 @@ const ImageModal = ({ open, onClose, imageData }: ImageModalProps) => {
         </IconButton>
 
         <img
-          src={`${import.meta.env.VITE_API_URL}${imageData.url}`}
+          src={`${imageData.url}`}
           alt={imageData.title || "Image"}
           style={{
             width: "100%",

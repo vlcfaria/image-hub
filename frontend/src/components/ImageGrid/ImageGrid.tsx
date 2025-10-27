@@ -21,7 +21,7 @@ const ImageGrid = ({ searchTerm, onImageClick }: ImageGridProps) => {
           onClick={() => onImageClick(item)}
         >
           <img
-            src={`${import.meta.env.VITE_API_URL}${item.url}`}
+            src={`${item.url}`}
             alt={item.title || `Image ${index}`}
             loading="lazy"
           />
