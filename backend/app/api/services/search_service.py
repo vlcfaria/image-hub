@@ -46,7 +46,8 @@ async def hydrate_from_qdrant(retrieved: list[models.ScoredPoint]) -> list[Retri
 
 async def semantic_search(
     query: str,
-    k: int,
+    n: int,
+    page: int,
     model: SiglipModel,
     tokenizer: SiglipTokenizer
 ) -> list[RetrievedImageModel]:
@@ -59,7 +60,8 @@ async def semantic_search(
     hits = vector_db.client.search(
         collection_name=COLLECTION_NAME,
         query_vector = text_features.tolist(),
-        limit=k
+        limit=n,
+        offset=(page - 1)*n,
     )
 
     return await hydrate_from_qdrant(hits)
