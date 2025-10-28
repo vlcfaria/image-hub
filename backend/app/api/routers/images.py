@@ -1,5 +1,7 @@
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 import logging
+from transformers import SiglipModel, SiglipProcessor
+from ... import dependencies
 from ..models.images import ImageModel
 from ..services import image_service
 
@@ -37,9 +39,11 @@ async def read_single(image_id: str):
 )
 async def create_single(
     image_data: str = Form(..., description="JSON that can be parsed into an ImageModel"), 
-    file: UploadFile = File(..., description=".jpg image")
+    file: UploadFile = File(..., description=".jpg image"),
+    model: SiglipModel = Depends(dependencies.get_sglip_model),
+    processor: SiglipProcessor = Depends(dependencies.get_sglip_processor),
 ):
     """
     Creates an image in the database along with relevant metadata.
     """
-    return await image_service.handle_image_creation(image_data, file)
+    return await image_service.handle_image_creation(image_data, file, model, processor)
