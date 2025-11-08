@@ -2,6 +2,7 @@ from functools import lru_cache
 from transformers import AutoProcessor, AutoModel, AutoTokenizer, SiglipModel, SiglipProcessor, SiglipTokenizer
 import os
 import logging
+from fastembed import SparseTextEmbedding
 
 MODEL = os.environ.get('ENCODER_MODEL')
 
@@ -22,3 +23,7 @@ def get_sglip_tokenizer() -> SiglipTokenizer:
     logging.info('Loading Tokenizer...')
     tokenizer = AutoTokenizer.from_pretrained(MODEL, use_fast=True)
     return tokenizer
+
+@lru_cache(maxsize=1)
+def get_bm25_model():
+    return SparseTextEmbedding(model_name="Qdrant/bm25")

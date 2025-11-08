@@ -10,3 +10,4 @@ qdrant_client==1.15.1
 transformers==4.57.1
 gunicorn
 uvicorn
+fastembed

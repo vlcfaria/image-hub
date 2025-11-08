@@ -28,6 +28,9 @@ METADATA_CSV = DATA_DIR / "metadata.csv"
 VECTOR_FILE = DATA_DIR / "vectors.npy"
 ID_FILE = DATA_DIR / "ids.json"
 
+DENSE_VECTOR_NAME="image_embedding"
+SPARSE_VECTOR_NAME="text_bm25"
+
 #Wait services to start
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(3))
 async def wait_for_mongo(client):
@@ -68,7 +71,17 @@ async def main():
     try:
         qdrant_client.recreate_collection(
             collection_name=QDRANT_COLLECTION,
-            vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
+            vectors_config={
+                DENSE_VECTOR_NAME: models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
+            },
+            sparse_vectors_config= {
+                SPARSE_VECTOR_NAME: models.SparseVectorParams(modifier=models.Modifier.IDF,)
+            }
+        )
+        qdrant_client.create_payload_index(
+            collection_name=QDRANT_COLLECTION,
+            field_name='mongo_id',
+            field_schema=models.PayloadSchemaType.KEYWORD
         )
         log.info(f"Qdrant collection '{QDRANT_COLLECTION}' created.")
     except Exception as e:
@@ -143,12 +156,22 @@ async def main():
                 "mongo_id": mongo_id,
                 "tags": mongo_doc.get("tags", []), # Example filterable field
             }
+
+            #Index sparse data
+            text = ' '.join(row.drop(['id', 'file', 'url']))
+            sparse_vector_data = models.Document(
+                text=text, 
+                model="Qdrant/bm25"
+            )
             
             # 6. Create Qdrant point
             qdrant_points_batch.append(
                 PointStruct(
                     id=int(image_id),
-                    vector=vector.tolist(),
+                    vector={
+                        DENSE_VECTOR_NAME: vector.tolist(),
+                        SPARSE_VECTOR_NAME: sparse_vector_data
+                    },
                     payload=payload
                 )
             )
