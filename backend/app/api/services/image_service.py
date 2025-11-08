@@ -20,23 +20,13 @@ UPLOAD_DIR = pathlib.Path(IMAGES_DIR)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 IMAGE_COLLECTION_NAME = 'image_hub'
 
-def get_mongo_images_collection():
-    try:
-        return db.db.get_collection("images")
-    except RuntimeError as e:
-        logging.error(f"Error getting collection: {e}")
-        raise HTTPException(
-            status_code=503,
-            detail="Database connection is not available."
-        )
-
 async def get_first_k(k = 1_000):
-    col = get_mongo_images_collection()
+    col = database.get_images_collection()
 
     return await col.find().to_list(k)
 
 async def get_from_id(id: str):
-    col = get_mongo_images_collection()
+    col = database.get_images_collection()
 
     if not ObjectId.is_valid(id):
         raise exceptions.InvalidIDError(f"Invalid image ID format: {id}")
@@ -73,7 +63,7 @@ async def save_image_to_disk(file: UploadFile):
 
 async def save_metadata_to_db(image: ImageModel):
     """Saves image database to MongoDB. Returns the newly created object in the database"""
-    col = get_mongo_images_collection()
+    col = database.get_images_collection()
 
     new_image = image.model_dump(exclude=['id'], by_alias=True)
     result = await col.insert_one(new_image)
@@ -127,7 +117,7 @@ async def handle_image_creation(image_data: str, file: UploadFile, model: Siglip
     try:
         await save_image_to_vector_db(disk_path, model, processor, str(created_image['_id']))
     except Exception as e: #rollback
-        col = get_mongo_images_collection()
+        col = database.get_images_collection()
         col.delete_one({'_id': created_image['_id']})
         os.unlink(str(disk_path))
 
