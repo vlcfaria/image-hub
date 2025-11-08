@@ -11,7 +11,8 @@ import magic
 from . import exceptions
 import torch
 from transformers.image_utils import load_image
-from qdrant_client.http.models import PointStruct
+from qdrant_client.http.models import (PointStruct, Filter, FieldCondition, MatchValue, HasIdCondition)
+from ..utils import database
 
 IMAGES_DIR = os.environ.get('IMAGES_DIR')
 IMAGES_URL_PATH = os.environ.get('IMAGES_URL_PATH')
@@ -132,5 +133,52 @@ async def handle_image_creation(image_data: str, file: UploadFile, model: Siglip
 
         raise e
 
-
     return created_image
+
+async def get_related(image_id: str, n: int, page: int):    
+    #First check if this is id is valid in mongoDB
+    await get_from_id(image_id)
+    
+    #Search for the image in the qdrant database
+    scroll_filter = Filter(
+        must=[
+            FieldCondition(
+                key="mongo_id",
+                match=MatchValue(
+                    value=image_id
+                )
+            )
+        ]
+    )
+
+    records, _ = vector_db.client.scroll(
+        collection_name=IMAGE_COLLECTION_NAME,
+        scroll_filter=scroll_filter,
+        limit=1,
+        with_payload=True,
+        with_vectors=True
+    )
+
+    if not records:
+        raise exceptions.ItemNotFoundError(f"The image id ${image_id} was found in the metadata database, but not in the vector database. Please contact an administrator")
+    
+    vector_data = records[0]
+    
+    #To exclude the vector we just retrieved
+    exclude_filter = Filter(
+        must_not=[
+            HasIdCondition(
+                has_id=[vector_data.id]
+            )
+        ]
+    )
+
+    hits = vector_db.client.search(
+        collection_name=IMAGE_COLLECTION_NAME,
+        query_vector = vector_data.vector,
+        query_filter=exclude_filter,
+        limit=n,
+        offset=(page - 1)*n,
+    )
+
+    return await database.hydrate_from_qdrant(hits)

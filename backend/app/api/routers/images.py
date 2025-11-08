@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from typing import Annotated
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 import logging
 from transformers import SiglipModel, SiglipProcessor
 from ... import dependencies
-from ..models.images import ImageModel
+from ..models.images import ImageModel, RetrievedImageModel
 from ..services import image_service
 
 logging.basicConfig(level=logging.INFO)
@@ -47,3 +48,19 @@ async def create_single(
     Creates an image in the database along with relevant metadata.
     """
     return await image_service.handle_image_creation(image_data, file, model, processor)
+
+@router.get(
+    '/related/{image_id}',
+    response_description="Lists semantically related images",
+    response_model=list[RetrievedImageModel]
+)
+async def get_related(
+    image_id: str,
+    n: Annotated[int, Query(description="Number of results to display")] = 5,
+    page: Annotated[int, Query(description="Current page to display. 1-indexed")] = 1,
+):
+    """
+    Gets semantically related image, starting from an image in the database
+    """
+
+    return await image_service.get_related(image_id, n, page)
