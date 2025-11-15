@@ -11,3 +11,4 @@ transformers==4.57.1
 gunicorn
 uvicorn
 fastembed
+tenacity
