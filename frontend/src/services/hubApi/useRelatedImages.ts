@@ -11,7 +11,6 @@ function useRelatedImages(imageId: string | null | undefined) {
     queryKey: ["useRelatedImages", imageId],
     queryFn: async () => {
       if (!imageId) return [];
-      // Fetch 5 related images
       const response = await hubApiClient.get(`/images/related/${imageId}?n=6`);
       return response.data;
     },

@@ -1,5 +1,8 @@
+import { useEffect } from "react";
 import { Modal, Box, Typography, IconButton, Divider, ImageList, ImageListItem } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import useRelatedImages from "../../services/hubApi/useRelatedImages";
 import type { ImageData } from "../../types/Image";
 
@@ -8,16 +11,52 @@ interface ImageModalProps {
   onClose: () => void;
   imageData: ImageData | null;
   onImageClick?: (imageData: ImageData) => void;
+  allImages?: ImageData[];
 }
 
-const ImageModal = ({ open, onClose, imageData, onImageClick }: ImageModalProps) => {
-  const { data: relatedImages, isLoading } = useRelatedImages(imageData?._id);
+const ImageModal = ({ open, onClose, imageData, onImageClick, allImages }: ImageModalProps) => {
+  const { data: relatedImages } = useRelatedImages(imageData?._id);
+
+  useEffect(() => {
+    if (!open || !allImages || !imageData) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const currentIndex = allImages.findIndex(img => img._id === imageData._id);
+      
+      if (e.key === "ArrowRight" && currentIndex < allImages.length - 1) {
+        onImageClick?.(allImages[currentIndex + 1]);
+      } else if (e.key === "ArrowLeft" && currentIndex > 0) {
+        onImageClick?.(allImages[currentIndex - 1]);
+      } else if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, allImages, imageData, onImageClick, onClose]);
 
   if (!imageData) return null;
+
+  const currentIndex = allImages?.findIndex(img => img._id === imageData._id) ?? -1;
+  const hasPrevious = currentIndex > 0;
+  const hasNext = allImages && currentIndex < allImages.length - 1;
 
   const handleRelatedImageClick = (relatedImage: ImageData) => {
     if (onImageClick) {
       onImageClick(relatedImage);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (hasPrevious && allImages) {
+      onImageClick?.(allImages[currentIndex - 1]);
+    }
+  };
+
+  const handleNext = () => {
+    if (hasNext && allImages) {
+      onImageClick?.(allImages[currentIndex + 1]);
     }
   };
 
@@ -58,7 +97,6 @@ const ImageModal = ({ open, onClose, imageData, onImageClick }: ImageModalProps)
             gap: 4,
           }}
         >
-          {/* Left side - Image */}
           <Box
             sx={{
               display: "flex",
@@ -78,7 +116,6 @@ const ImageModal = ({ open, onClose, imageData, onImageClick }: ImageModalProps)
             />
           </Box>
 
-          {/* Right side - Information */}
           <Box sx={{ overflow: "auto", maxHeight: "70vh", marginRight: 2.5 }}>
             {imageData.title && (
               <Typography

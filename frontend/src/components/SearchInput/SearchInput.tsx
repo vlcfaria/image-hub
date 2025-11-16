@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   TextField,
   Button,
@@ -34,6 +34,12 @@ const SearchInput = ({
   const [searchMode, setSearchMode] = useState<SearchMode>("text");
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputText.trim() && searchMode === "text") {
+      onTextSearch(inputText, searchType);
+    }
+  }, [searchType]);
 
   const handleTextSearch = () => {
     onTextSearch(inputText, searchType);
@@ -79,7 +85,6 @@ const SearchInput = ({
   ) => {
     if (newMode !== null) {
       setSearchMode(newMode);
-      // Clear the other mode's state
       if (newMode === "text") {
         setSelectedImageFile(null);
       } else {
@@ -92,7 +97,6 @@ const SearchInput = ({
     <Box
       sx={{ display: "flex", flexDirection: "column", gap: 1.5, width: "100%" }}
     >
-      {/* Search Mode Toggle */}
       <ToggleButtonGroup
         color="primary"
         value={searchMode}
@@ -112,7 +116,6 @@ const SearchInput = ({
         </ToggleButton>
       </ToggleButtonGroup>
 
-      {/* Text Search Mode */}
       {searchMode === "text" && (
         <>
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -158,7 +161,6 @@ const SearchInput = ({
         </>
       )}
 
-      {/* Image Search Mode */}
       {searchMode === "image" && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           <Button

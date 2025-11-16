@@ -61,6 +61,7 @@ const HomePage = () => {
   const activeSearch = textSearchTerm ? textSearch : imageSearch;
   const isSearchLoading = activeSearch.isLoading;
   const searchError = activeSearch.error;
+  const allImages = activeSearch.data?.pages.flatMap(page => page) || [];
 
   return (
     <>
@@ -151,6 +152,7 @@ const HomePage = () => {
         onClose={handleCloseModal}
         imageData={selectedImage}
         onImageClick={handleImageClick}
+        allImages={allImages}
       />
 
       <UploadImageModal

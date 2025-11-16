@@ -68,16 +68,29 @@ const ImageGrid = ({
 
   return (
     <>
-      <ImageList cols={4} gap={8} variant="quilted">
+      <ImageList cols={5} gap={8} rowHeight={500}>
         {allImages.map((item: ImageData, index: number) => (
           <ImageListItem
             key={item._id || index}
             onClick={() => onImageClick(item)}
+            sx={{
+              cursor: "pointer",
+              overflow: "hidden",
+              "&:hover": {
+                opacity: 0.8,
+                transition: "opacity 0.2s",
+              },
+            }}
           >
             <img
               src={`${item.url}`}
               alt={item.title || `Image ${index}`}
               loading="lazy"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
             />
           </ImageListItem>
         ))}
