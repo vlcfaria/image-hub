@@ -1,32 +1,25 @@
-import { Modal, Box, Typography, IconButton, Divider } from "@mui/material";
+import { Modal, Box, Typography, IconButton, Divider, ImageList, ImageListItem } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-
-export interface ImageData {
-  url: string;
-  title?: string;
-  author?: string;
-  born_died?: string;
-  date?: string;
-  technique?: string;
-  location?: string;
-  form?: string;
-  type?: string;
-  school?: string;
-  timeline?: string;
-  score?: number;
-  description?: string;
-  tags?: string[];
-  uploadDate?: string;
-}
+import useRelatedImages from "../../services/hubApi/useRelatedImages";
+import type { ImageData } from "../../types/Image";
 
 interface ImageModalProps {
   open: boolean;
   onClose: () => void;
   imageData: ImageData | null;
+  onImageClick?: (imageData: ImageData) => void;
 }
 
-const ImageModal = ({ open, onClose, imageData }: ImageModalProps) => {
+const ImageModal = ({ open, onClose, imageData, onImageClick }: ImageModalProps) => {
+  const { data: relatedImages, isLoading } = useRelatedImages(imageData?._id);
+
   if (!imageData) return null;
+
+  const handleRelatedImageClick = (relatedImage: ImageData) => {
+    if (onImageClick) {
+      onImageClick(relatedImage);
+    }
+  };
 
   return (
     <Modal
@@ -86,7 +79,7 @@ const ImageModal = ({ open, onClose, imageData }: ImageModalProps) => {
           </Box>
 
           {/* Right side - Information */}
-          <Box sx={{ overflow: "auto", maxHeight: "70vh" }}>
+          <Box sx={{ overflow: "auto", maxHeight: "70vh", marginRight: 2.5 }}>
             {imageData.title && (
               <Typography
                 id="image-modal-title"
@@ -197,6 +190,39 @@ const ImageModal = ({ open, onClose, imageData }: ImageModalProps) => {
                 </Box>
               )}
             </Box>
+
+            {relatedImages && relatedImages.length > 0 && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" mb={1}>
+                    Related Images
+                  </Typography>
+                  <ImageList cols={3} gap={8}>
+                    {relatedImages.map((item) => (
+                      <ImageListItem 
+                        key={item._id}
+                        onClick={() => handleRelatedImageClick(item)}
+                        sx={{ 
+                          cursor: "pointer",
+                          '&:hover': {
+                            opacity: 0.8,
+                            transition: 'opacity 0.2s'
+                          }
+                        }}
+                      >
+                        <img
+                          src={`${item.url}`}
+                          alt={item.title || "Related Image"}
+                          loading="lazy"
+                          style={{ borderRadius: "4px" }}
+                        />
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                </Box>
+              </>
+            )}
 
             {imageData.description && (
               <>

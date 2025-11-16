@@ -5,19 +5,44 @@ import ImageGrid from "../components/ImageGrid/ImageGrid";
 import SearchInput from "../components/SearchInput/SearchInput";
 import ImageModal from "../components/ImageModal/ImageModal";
 import UploadImageModal from "../components/UploadImageModal/UploadImageModal";
-import "./HomePage.css";
+import useSemanticTextSearch from "../services/hubApi/useSemanticTextSearch";
+import type { SearchType } from "../services/hubApi/useSemanticTextSearch";
+import useSemanticImageSearch from "../services/hubApi/useSemanticImageSearch";
+import type { ImageData } from "../types/Image";
 
 const HomePage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedImage, setSelectedImage] = useState<any | null>(null);
+  const [textSearchTerm, setTextSearchTerm] = useState("");
+  const [searchType, setSearchType] = useState<SearchType>("semantic");
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [imageSearchFile, setImageSearchFile] = useState<File | null>(null);
 
-  const handleSearch = (text: string) => {
-    setSearchTerm(text);
+  const textSearch = useSemanticTextSearch(textSearchTerm, searchType);
+  const imageSearch = useSemanticImageSearch(imageSearchFile);
+
+  const handleTextSearch = (text: string, type: SearchType) => {
+    setImageSearchFile(null);
+    setSearchType(type);
+    setTextSearchTerm(text);
+    setIsSearchActive(!!text);
   };
 
-  const handleImageClick = (imageData: any) => {
+  const handleImageSearch = (file: File) => {
+    setTextSearchTerm("");
+    setIsSearchActive(true);
+    setImageSearchFile(file);
+  };
+
+  const handleClearSearch = () => {
+    setTextSearchTerm("");
+    setSearchType("semantic");
+    setImageSearchFile(null);
+    setIsSearchActive(false);
+  };
+
+  const handleImageClick = (imageData: ImageData) => {
     setSelectedImage(imageData);
     setModalOpen(true);
   };
@@ -28,8 +53,14 @@ const HomePage = () => {
   };
 
   const handleUploadSuccess = () => {
-    setSearchTerm("");
+    setIsSearchActive(false);
+    setTextSearchTerm("");
+    setImageSearchFile(null);
   };
+
+  const activeSearch = textSearchTerm ? textSearch : imageSearch;
+  const isSearchLoading = activeSearch.isLoading;
+  const searchError = activeSearch.error;
 
   return (
     <>
@@ -48,14 +79,19 @@ const HomePage = () => {
             width: "100%",
             maxWidth: "600px",
             transition: "all 0.4s ease-in-out",
-            mb: searchTerm ? 4 : 0,
-            marginTop: searchTerm ? 4 : "calc(50vh)",
+            mb: isSearchActive ? 4 : 0,
+            marginTop: isSearchActive ? 4 : "calc(40vh)",
           }}
         >
-          <SearchInput onSearch={handleSearch} />
+          <SearchInput
+            onTextSearch={handleTextSearch}
+            onImageSearch={handleImageSearch}
+            onClear={handleClearSearch}
+            isImageSearchLoading={imageSearch.isFetching}
+          />
         </Box>
 
-        {searchTerm && (
+        {isSearchActive && (
           <Box
             sx={{
               width: "100%",
@@ -74,7 +110,15 @@ const HomePage = () => {
               },
             }}
           >
-            <ImageGrid searchTerm={searchTerm} onImageClick={handleImageClick} />
+            <ImageGrid
+              data={activeSearch.data?.pages}
+              isLoading={isSearchLoading}
+              isFetchingNextPage={activeSearch.isFetchingNextPage}
+              hasNextPage={activeSearch.hasNextPage ?? false}
+              error={searchError}
+              onImageClick={handleImageClick}
+              onLoadMore={() => activeSearch.fetchNextPage()}
+            />
           </Box>
         )}
       </Box>
@@ -83,6 +127,7 @@ const HomePage = () => {
         open={modalOpen}
         onClose={handleCloseModal}
         imageData={selectedImage}
+        onImageClick={handleImageClick}
       />
 
       <UploadImageModal

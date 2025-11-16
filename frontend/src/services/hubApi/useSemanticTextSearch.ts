@@ -1,27 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import hubApiClient from "./utils/hubApiClient";
+import type { ImageData } from "../../types/Image";
 
-interface ImageData {
-  _id: string;
-  url: string;
-  title?: string;
-  author?: string;
-  date?: string;
-  technique?: string;
-  location?: string;
-  form?: string;
-  type?: string;
-  school?: string;
-  timeline?: string;
-  score: number;
-}
+export type SearchType = "semantic" | "keyword" | "hybrid";
 
-function useSemanticTextSearch(query: string) {
-  return useQuery<ImageData[]>({
-    queryKey: ["useSemanticTextSearch", query],
-    queryFn: async () => {
-      const response = await hubApiClient.get(`/search/?query=${query}`);
-      return response.data; // Extract the data array from axios response
+function useSemanticTextSearch(query: string, type: SearchType, pageSize: number = 20) {
+  return useInfiniteQuery<ImageData[]>({
+    queryKey: ["useSemanticTextSearch", query, type, pageSize],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await hubApiClient.get(
+        `/search/?query=${query}&type=${type}&n=${pageSize}&page=${pageParam}`
+      );
+      return response.data;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < pageSize) {
+        return undefined;
+      }
+      return allPages.length + 1;
     },
     enabled: query !== "",
   });

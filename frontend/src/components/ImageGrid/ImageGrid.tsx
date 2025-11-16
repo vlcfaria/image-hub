@@ -1,33 +1,98 @@
-import useSemanticTextSearch from "../../services/hubApi/useSemanticTextSearch";
-import { ImageList, ImageListItem } from "@mui/material";
+import { useEffect, useRef } from "react";
+import { ImageList, ImageListItem, Box, Typography, CircularProgress } from "@mui/material";
+import type { ImageData } from "../../types/Image";
 
 interface ImageGridProps {
-  searchTerm: string;
-  onImageClick: (imageData: any) => void;
+  data: ImageData[][] | undefined;
+  isLoading: boolean;
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  error: Error | null;
+  onImageClick: (imageData: ImageData) => void;
+  onLoadMore: () => void;
 }
 
-const ImageGrid = ({ searchTerm, onImageClick }: ImageGridProps) => {
-  const { data, isLoading, error } = useSemanticTextSearch(searchTerm);
+const ImageGrid = ({ 
+  data, 
+  isLoading, 
+  isFetchingNextPage,
+  hasNextPage,
+  error, 
+  onImageClick,
+  onLoadMore 
+}: ImageGridProps) => {
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading images</div>;
-  if (!data || data.length === 0) return;
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          onLoadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+        <Typography color="error">Error loading images.</Typography>
+      </Box>
+    );
+  }
+
+  const allImages = data?.flatMap(page => page) || [];
+
+  if (allImages.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+        <Typography>No results found.</Typography>
+      </Box>
+    );
+  }
 
   return (
-    <ImageList cols={3} gap={8} variant="masonry">
-      {data.map((item: any, index: number) => (
-        <ImageListItem
-          key={item._id || index}
-          onClick={() => onImageClick(item)}
-        >
-          <img
-            src={`${item.url}`}
-            alt={item.title || `Image ${index}`}
-            loading="lazy"
-          />
-        </ImageListItem>
-      ))}
-    </ImageList>
+    <>
+      <ImageList cols={4} gap={8} variant="quilted">
+        {allImages.map((item: ImageData, index: number) => (
+          <ImageListItem
+            key={item._id || index}
+            onClick={() => onImageClick(item)}
+          >
+            <img
+              src={`${item.url}`}
+              alt={item.title || `Image ${index}`}
+              loading="lazy"
+            />
+          </ImageListItem>
+        ))}
+      </ImageList>
+
+      <Box 
+        ref={loadMoreRef} 
+        sx={{ display: 'flex', justifyContent: 'center', my: 4 }}
+      >
+        {isFetchingNextPage && <CircularProgress />}
+        {!hasNextPage && allImages.length > 0 && (
+          <Typography color="text.secondary">No more results</Typography>
+        )}
+      </Box>
+    </>
   );
 };
 
