@@ -96,8 +96,8 @@ const HomePage = () => {
             }}
           >
             <img
-              src="/ImageHub.svg"
-              alt="ImageHub Logo"
+              src="/ArtGallery.svg"
+              alt="Art Gallery Logo"
               style={{
                 maxWidth: "300px",
                 width: "100%",
