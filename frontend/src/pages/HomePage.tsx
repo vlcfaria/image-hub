@@ -78,11 +78,34 @@ const HomePage = () => {
           sx={{
             width: "100%",
             maxWidth: "600px",
-            transition: "all 0.4s ease-in-out",
+            transition: "all 0.5s ease-in-out",
             mb: isSearchActive ? 4 : 0,
-            marginTop: isSearchActive ? 4 : "calc(40vh)",
+            marginTop: isSearchActive ? 4 : "calc(8vh)",
           }}
         >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 4,
+              opacity: isSearchActive ? 0 : 1,
+              transform: isSearchActive ? "translateY(-20px) scale(0.95)" : "translateY(0) scale(1)",
+              transition: "opacity 0.4s ease-in-out, transform 0.4s ease-in-out, max-height 0.4s ease-in-out",
+              maxHeight: isSearchActive ? 0 : "300px",
+              overflow: "hidden",
+            }}
+          >
+            <img
+              src="/ImageHub.svg"
+              alt="ImageHub Logo"
+              style={{
+                maxWidth: "300px",
+                width: "100%",
+                height: "auto",
+              }}
+            />
+          </Box>
+          
           <SearchInput
             onTextSearch={handleTextSearch}
             onImageSearch={handleImageSearch}
