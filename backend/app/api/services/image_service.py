@@ -20,6 +20,8 @@ UPLOAD_DIR = pathlib.Path(IMAGES_DIR)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 IMAGE_COLLECTION_NAME = 'image_hub'
 
+DENSE_VECTOR_NAME="image_embedding"
+
 async def get_first_k(k = 1_000):
     col = database.get_images_collection()
 
@@ -146,7 +148,7 @@ async def get_related(image_id: str, n: int, page: int):
         scroll_filter=scroll_filter,
         limit=1,
         with_payload=True,
-        with_vectors=True
+        with_vectors=[DENSE_VECTOR_NAME]
     )
 
     if not records:
@@ -165,7 +167,7 @@ async def get_related(image_id: str, n: int, page: int):
 
     hits = vector_db.client.search(
         collection_name=IMAGE_COLLECTION_NAME,
-        query_vector = vector_data.vector,
+        query_vector=(DENSE_VECTOR_NAME, vector_data.vector[DENSE_VECTOR_NAME]),
         query_filter=exclude_filter,
         limit=n,
         offset=(page - 1)*n,

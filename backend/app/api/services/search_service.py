@@ -89,7 +89,7 @@ async def semantic_search_from_image(
 
     hits = vector_db.client.search(
         collection_name=COLLECTION_NAME,
-        query_vector = image_vector,
+        query_vector=(DENSE_VECTOR_NAME, image_vector),
         limit=n,
         offset=(page - 1)*n,
     )
