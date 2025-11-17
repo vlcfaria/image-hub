@@ -73,12 +73,11 @@ const ImageGrid = ({
         gap={8} 
         rowHeight={500}
         sx={{
-          // Responsive columns
           gridTemplateColumns: {
-            xs: 'repeat(2, 1fr) !important', // 2 columns on mobile
-            sm: 'repeat(3, 1fr) !important', // 3 columns on small tablets
-            md: 'repeat(4, 1fr) !important', // 4 columns on tablets
-            lg: 'repeat(5, 1fr) !important', // 5 columns on desktop
+            xs: 'repeat(2, 1fr) !important',
+            sm: 'repeat(3, 1fr) !important',
+            md: 'repeat(4, 1fr) !important',
+            lg: 'repeat(5, 1fr) !important',
           }
         }}
       >
