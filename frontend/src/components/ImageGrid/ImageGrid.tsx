@@ -68,7 +68,20 @@ const ImageGrid = ({
 
   return (
     <>
-      <ImageList cols={5} gap={8} rowHeight={500}>
+      <ImageList 
+        cols={5}
+        gap={8} 
+        rowHeight={500}
+        sx={{
+          // Responsive columns
+          gridTemplateColumns: {
+            xs: 'repeat(2, 1fr) !important', // 2 columns on mobile
+            sm: 'repeat(3, 1fr) !important', // 3 columns on small tablets
+            md: 'repeat(4, 1fr) !important', // 4 columns on tablets
+            lg: 'repeat(5, 1fr) !important', // 5 columns on desktop
+          }
+        }}
+      >
         {allImages.map((item: ImageData, index: number) => (
           <ImageListItem
             key={item._id || index}
@@ -76,6 +89,12 @@ const ImageGrid = ({
             sx={{
               cursor: "pointer",
               overflow: "hidden",
+              height: {
+                xs: '200px !important',
+                sm: '300px !important',
+                md: '400px !important',
+                lg: '500px !important',
+              },
               "&:hover": {
                 opacity: 0.8,
                 transition: "opacity 0.2s",

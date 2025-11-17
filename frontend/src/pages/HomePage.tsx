@@ -72,7 +72,7 @@ const HomePage = () => {
           alignItems: "center",
           justifyContent: "flex-start",
           minHeight: "100vh",
-          px: 2,
+          px: 1,
         }}
       >
         <Box
@@ -81,7 +81,7 @@ const HomePage = () => {
             maxWidth: "600px",
             transition: "all 0.5s ease-in-out",
             mb: isSearchActive ? 4 : 0,
-            marginTop: isSearchActive ? 4 : "calc(8vh)",
+            marginTop: isSearchActive ? 2 : "calc(8vh)",
           }}
         >
           <Box

@@ -78,32 +78,76 @@ const ImageModal = ({ open, onClose, imageData, onImageClick, allImages }: Image
           bgcolor: "background.paper",
           boxShadow: 24,
           borderRadius: 2,
-          p: 4,
           maxHeight: "90vh",
-          overflow: "auto",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <IconButton
-          onClick={onClose}
-          sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            p: 2,
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
         >
-          <CloseIcon />
-        </IconButton>
+          <Box sx={{ flex: 1, pr: 2, minWidth: 0 }}>
+            <Typography
+              id="image-modal-title"
+              variant="h6"
+              component="h2"
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {imageData.title || "Image Details"}
+            </Typography>
+            {imageData.author && (
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {imageData.author}
+                {imageData.born_died && ` (${imageData.born_died})`}
+              </Typography>
+            )}
+          </Box>
+          <IconButton onClick={onClose} edge="end">
+            <CloseIcon />
+          </IconButton>
+        </Box>
 
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-            gap: 4,
+            p: 2,
+            overflow: "auto",
+            flex: 1,
           }}
         >
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              gap: 4,
             }}
           >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
             <img
               src={`${imageData.url}`}
               alt={imageData.title || "Image"}
@@ -116,27 +160,7 @@ const ImageModal = ({ open, onClose, imageData, onImageClick, allImages }: Image
             />
           </Box>
 
-          <Box sx={{ overflow: "auto", maxHeight: "70vh", marginRight: 2.5 }}>
-            {imageData.title && (
-              <Typography
-                id="image-modal-title"
-                variant="h5"
-                component="h2"
-                mb={2}
-              >
-                {imageData.title}
-              </Typography>
-            )}
-
-            {imageData.author && (
-              <Typography variant="h6" color="text.secondary" mb={2}>
-                {imageData.author}
-                {imageData.born_died && ` (${imageData.born_died})`}
-              </Typography>
-            )}
-
-            <Divider sx={{ my: 2 }} />
-
+          <Box sx={{ overflow: { xs: "visible", md: "auto" }, maxHeight: { xs: "none", md: "70vh" } }}>
             <Box sx={{ display: "grid", gap: 2 }}>
               {imageData.date && (
                 <Box>
@@ -222,7 +246,7 @@ const ImageModal = ({ open, onClose, imageData, onImageClick, allImages }: Image
                     Relevance Score
                   </Typography>
                   <Typography variant="body1">
-                    {(imageData.score * 100).toFixed(1)}%
+                    {(imageData.score * 100).toFixed(1)}
                   </Typography>
                 </Box>
               )}
@@ -235,17 +259,31 @@ const ImageModal = ({ open, onClose, imageData, onImageClick, allImages }: Image
                   <Typography variant="subtitle2" color="text.secondary" mb={1}>
                     Related Images
                   </Typography>
-                  <ImageList cols={3} gap={8}>
+                  <ImageList 
+                    cols={3} 
+                    gap={8} 
+                    variant='standard' 
+                    rowHeight={200}
+                    sx={{
+                      gridTemplateColumns: {
+                        xs: 'repeat(2, 1fr) !important',
+                        sm: 'repeat(2, 1fr) !important',
+                        md: 'repeat(2, 1fr) !important',
+                        lg: 'repeat(3, 1fr) !important',
+                      }
+                    }}
+                  >
                     {relatedImages.map((item) => (
                       <ImageListItem 
                         key={item._id}
                         onClick={() => handleRelatedImageClick(item)}
-                        sx={{ 
+                        sx={{
                           cursor: "pointer",
-                          '&:hover': {
+                          overflow: "hidden",
+                          "&:hover": {
                             opacity: 0.8,
-                            transition: 'opacity 0.2s'
-                          }
+                            transition: "opacity 0.2s",
+                          },
                         }}
                       >
                         <img
@@ -313,6 +351,7 @@ const ImageModal = ({ open, onClose, imageData, onImageClick, allImages }: Image
               </>
             )}
           </Box>
+        </Box>
         </Box>
       </Box>
     </Modal>
