@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 import logging
+from fastembed import SparseTextEmbedding
 from transformers import SiglipModel, SiglipProcessor
 from ... import dependencies
 from ..models.images import ImageModel, RetrievedImageModel
@@ -43,11 +44,12 @@ async def create_single(
     file: UploadFile = File(..., description=".jpg image"),
     model: SiglipModel = Depends(dependencies.get_sglip_model),
     processor: SiglipProcessor = Depends(dependencies.get_sglip_processor),
+    bm25_model: SparseTextEmbedding = Depends(dependencies.get_bm25_model)
 ):
     """
     Creates an image in the database along with relevant metadata.
     """
-    return await image_service.handle_image_creation(image_data, file, model, processor)
+    return await image_service.handle_image_creation(image_data, file, model, processor, bm25_model)
 
 @router.get(
     '/related/{image_id}',

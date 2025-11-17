@@ -5,16 +5,16 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 class ImageModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    author: str = Field(None)
-    born_died: str = Field(None)
+    author: str | None = Field(None)
+    born_died: str | None = Field(None)
     title: str = Field(...) #The '...' means its required
-    date: str = Field(None) #None means its optional, or we can set to a default value
-    technique: str = Field(None)
-    location: str = Field(None)
-    form: str = Field(None)
-    type: str = Field(None)
-    school: str = Field(None)
-    timeline: str = Field(None)
+    date: str | None = Field(None) #None means its optional, or we can set to a default value
+    technique: str | None = Field(None)
+    location: str | None = Field(None)
+    form: str | None = Field(None)
+    type: str | None = Field(None)
+    school: str | None = Field(None)
+    timeline: str | None = Field(None)
     url: str = Field(None)
 
     model_config = ConfigDict(

@@ -2,6 +2,7 @@ import pathlib
 import uuid
 from bson import ObjectId
 from fastapi import HTTPException, UploadFile
+from fastembed import SparseTextEmbedding
 from transformers import SiglipModel, SiglipProcessor
 from ..models.images import ImageModel
 from ...db import db, vector_db
@@ -12,6 +13,7 @@ from . import exceptions
 import torch
 from transformers.image_utils import load_image
 from qdrant_client.http.models import (PointStruct, Filter, FieldCondition, MatchValue, HasIdCondition)
+from qdrant_client import models
 from ..utils import database
 
 IMAGES_DIR = os.environ.get('IMAGES_DIR')
@@ -21,6 +23,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 IMAGE_COLLECTION_NAME = 'image_hub'
 
 DENSE_VECTOR_NAME="image_embedding"
+SPARSE_VECTOR_NAME="text_bm25"
 
 async def get_first_k(k = 1_000):
     col = database.get_images_collection()
@@ -79,17 +82,34 @@ async def save_metadata_to_db(image: ImageModel):
     
     return created_image
 
-async def save_image_to_vector_db(path: pathlib.Path, model: SiglipModel, processor: SiglipProcessor, id: str | int):
+async def save_image_to_vector_db(
+    path: pathlib.Path,
+    text: str,
+    model: SiglipModel,
+    processor: SiglipProcessor,
+    bm25_model: SparseTextEmbedding,
+    id: str | int,
+):
     image = load_image(str(path))
     inputs = processor(images=image, return_tensors="pt")
 
+    #Get dense vector
     with torch.no_grad():
         image_vector = model.get_image_features(**inputs).squeeze().tolist()
 
-    logging.info(f"Inserting {path.stem} with mongo_id {id} and vector {image_vector}")
+    #Get sparse vector
+    sparse_vector = list(bm25_model.query_embed(text))[0]
+    sparse_vector_data = models.SparseVector(
+        indices=sparse_vector.indices.tolist(),
+        values=sparse_vector.values.tolist()
+    )
+
     point = PointStruct(
         id=path.stem,
-        vector=image_vector,
+        vector={
+            DENSE_VECTOR_NAME: image_vector,
+            SPARSE_VECTOR_NAME: sparse_vector_data
+        },
         payload={
             "mongo_id": id,
         }
@@ -102,7 +122,13 @@ async def save_image_to_vector_db(path: pathlib.Path, model: SiglipModel, proces
         wait=False
     )
 
-async def handle_image_creation(image_data: str, file: UploadFile, model: SiglipModel, processor: SiglipProcessor):
+async def handle_image_creation(
+    image_data: str,
+    file: UploadFile,
+    model: SiglipModel,
+    processor: SiglipProcessor,
+    bm25_model: SparseTextEmbedding
+):
     image = ImageModel.model_validate_json(image_data)
     
     #Save file to disk
@@ -117,7 +143,9 @@ async def handle_image_creation(image_data: str, file: UploadFile, model: Siglip
 
     #Save to vector database
     try:
-        await save_image_to_vector_db(disk_path, model, processor, str(created_image['_id']))
+        non_text = set(['url'])
+        text = ' '.join([str(v) for k,v in image.model_dump().items() if k not in non_text and v is not None])
+        await save_image_to_vector_db(disk_path, text, model, processor, bm25_model, str(created_image['_id']))
     except Exception as e: #rollback
         col = database.get_images_collection()
         col.delete_one({'_id': created_image['_id']})
